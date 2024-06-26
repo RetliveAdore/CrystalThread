@@ -2,8 +2,8 @@
  * @Author: RetliveAdore lizaterop@gmail.com
  * @Date: 2024-06-23 14:46:30
  * @LastEditors: RetliveAdore lizaterop@gmail.com
- * @LastEditTime: 2024-06-24 14:42:30
- * @FilePath: \Crystal-Thread\src\crthread.c
+ * @LastEditTime: 2024-06-26 15:07:26
+ * @FilePath: \CrystalThread\src\crthread.c
  * @Description: 
  * Coptright (c) 2024 by RetliveAdore-lizaterop@gmail.com, All Rights Reserved. 
  */
@@ -52,7 +52,15 @@ typedef struct crthread_inner
 }CRTHREADINNER, *PCRTHREADINNER;
 
 #ifdef CR_WINDOWS
-typedef CRITICAL_SECTION CRLOCKINNER, *PCRLOCKINNER;
+typedef struct crlock_inner
+{
+#ifdef CR_WINDOWS
+    CRITICAL_SECTION cs;
+#elif defined CR_LINUX
+    pthread_mutex_t cs;
+#endif
+    CRBOOL lock;
+}CRLOCKINNER, *PCRLOCKINNER;
 #elif defined CR_LINUX
 typedef pthread_mutex_t CRLOCKINNER, *PCRLOCKINNER;
 #endif
@@ -124,24 +132,51 @@ CRAPI CRLOCK CRLockCreate(void)
         CR_LOG_ERR("auto", "bad alloc");
         return pInner;
     }
-    #ifdef CR_WINDOWS
-    InitializeCriticalSection(pInner);
-    #elif defined CR_LINUX
-    #endif
+    InitializeCriticalSection(&(pInner->cs));
+    pInner->lock = CRFALSE;
+    return pInner;
 }
 
 CRAPI void CRLockRelease(CRLOCK lock)
 {
-    if (lock)
-        DeleteCriticalSection(lock);
+    PCRLOCKINNER pInner = lock;
+    if (!pInner)
+    {
+        CR_LOG_WAR("auto", "invalid lock");
+        return;
+    }
+    while (pInner->lock) CRSleep(1);
+    DeleteCriticalSection(&(pInner->cs));
+    CRAlloc(pInner, 0);
 }
 
 CRAPI void CRLock(CRLOCK lock)
 {
-    EnterCriticalSection(lock);
+    PCRLOCKINNER pInner = lock;
+    if (!pInner)
+    {
+        CR_LOG_WAR("auto", "invalid lock");
+        return;
+    }
+Block:
+    while (pInner->lock) CRSleep(1);
+    EnterCriticalSection(&(pInner->cs));
+    if (pInner->lock)
+    {
+        LeaveCriticalSection(&(pInner->cs));
+        goto Block;
+    }
+    pInner->lock = CRTRUE;
+    LeaveCriticalSection(&(pInner->cs));
 }
 
 CRAPI void CRUnlock(CRLOCK lock)
 {
-    LeaveCriticalSection(lock);
+    PCRLOCKINNER pInner = lock;
+    if (!pInner)
+    {
+        CR_LOG_WAR("auto", "invalid lock");
+        return;
+    }
+    pInner->lock = CRFALSE;
 }

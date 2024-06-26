@@ -51,7 +51,6 @@ typedef struct crthread_inner
 #endif
 }CRTHREADINNER, *PCRTHREADINNER;
 
-#ifdef CR_WINDOWS
 typedef struct crlock_inner
 {
 #ifdef CR_WINDOWS
@@ -61,9 +60,6 @@ typedef struct crlock_inner
 #endif
     CRBOOL lock;
 }CRLOCKINNER, *PCRLOCKINNER;
-#elif defined CR_LINUX
-typedef pthread_mutex_t CRLOCKINNER, *PCRLOCKINNER;
-#endif
 
 CRAPI void CRSleep(CRUINT64 ms)
 {

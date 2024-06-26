@@ -30,8 +30,8 @@ copy:
 	@gcc -fvisibility=hidden -fPIC -c $^ -o $@ $(INCLUDE_PATHS)
 
 build: clean $(OBJ_FILES_MOD) $(OBJ_FILES_CORE) copy
-	@ar rcs out/Linux/libCrystalAlgorithms.a $(OBJ_FILES_CORE)
-	@gcc -shared -o out/Linux/CrystalAlgorithms.so $(OBJ_FILES_MOD) $(INCLUDE_PATHS) $(LIBRARIES)
+	@ar rcs out/Linux/libCrystalThread.a $(OBJ_FILES_CORE)
+	@gcc -shared -o out/Linux/CrystalThread.so $(OBJ_FILES_MOD) $(INCLUDE_PATHS) $(LIBRARIES)
 
 debug:
 	@echo $(C_FILES)

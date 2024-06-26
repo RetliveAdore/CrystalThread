@@ -1,0 +1,5 @@
+if [ ! -d "./CrystalCore/" ];then git submodule add https://github.com/RetliveAdore/CrystalCore;fi
+if [ ! -d "./CrystalCore/" ];then git submodule add https://github.com/RetliveAdore/CrystalAlgorithms;fi
+git submodule update --remote
+cp ./platform/linux/makefile ./makefile
+make build
